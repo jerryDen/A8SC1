@@ -1,0 +1,13 @@
+---- getAPPver Matches (7 in 4 files) ----
+downloadAndUpdate in updateServer.c (G:\work\code\A8SC1) : 	currentVersion = getUtilsOps()->getAPPver(NULL);
+Utils.c (G:\work\code\A8SC1\common) line 304 : static int getAPPver(char *ver)
+Utils.c (G:\work\code\A8SC1\common) line 726 : 		.getAPPver = getAPPver,
+{anonUtilsOps} in Utils.h (G:\work\code\A8SC1\common) : 	int (*getAPPver)(char *);
+login in YJbackground.c (G:\work\code\A8SC1) : 	getUtilsOps()->getAPPver(appver);
+getUpdateRecord in YJbackground.c (G:\work\code\A8SC1) : 		getUtilsOps()->getAPPver(appver);
+---- getAPPver Search Errors Encountered (4) ----
+The following 4 files could not be processed:
+G:\work\code\A8SC1\hi_common\Makefile : File could not be opened.
+G:\work\code\A8SC1\watchdog\Makefile : File could not be opened.
+G:\work\code\A8SC1\wavPlay\Makefile : File could not be opened.
+G:\work\code\A8SC1\hi_common\sample_comm.h : File could not be opened.

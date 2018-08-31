@@ -12,22 +12,14 @@
 #include "common/inputEvent.h"
 
 
-#define DATABASE_PATH  "/usr/work/.cardDB"
-#define NEW_DATABASE_PATH "/usr/work/.newcardDB"
-
 #define RESET_LOGIN_TIME 300
-#define GET_CARDID_TIME  600
+#define GET_CARDID_TIME  1200
 #define GET_UPDATE_TIME  1200
-#define OPEN_DOOR_TIME   500
-#define SET_WTD_TIME     10
+#define SET_WTD_TIME     1
 static pYJbackgroundOps YjServer;
 static pUpdateServerOps updateServer;
 static pIcDoorCardOps 	icDoorCardReadServer;
 static pCardDataBaseOps cardDateBaseServer;
-static pCardDataBaseOps newcardDateBaseServer;
-
-
-
 static pThreadOps  wtdThread;
 
 
@@ -55,8 +47,8 @@ static int doorCardRecvFunc(CARD_TYPE type ,unsigned char* cardId,unsigned int c
 {
 	CardInfo cardPack;
 	int ret;
-	unsigned long long disabledateTime = 0;
-	unsigned long long courentTime = 0;
+	double disabledateTime;
+	double courentTime;
 	char cardStr[12] = {0};
 
 
@@ -72,7 +64,12 @@ static int doorCardRecvFunc(CARD_TYPE type ,unsigned char* cardId,unsigned int c
 	}
 	clock_gettime(CLOCK_MONOTONIC, &last_time);
 
+	
 
+
+
+
+	
 
 	bzero(&cardPack,sizeof(cardPack));
 	getUtilsOps()->GetWeiGendCardId(cardId,cardIdLen,cardStr,sizeof(cardStr));
@@ -81,7 +78,7 @@ static int doorCardRecvFunc(CARD_TYPE type ,unsigned char* cardId,unsigned int c
 	printf("cardStr:%s\n",cardStr);
 	ret = cardDateBaseServer->findCaidId(cardDateBaseServer,cardStr,&cardPack);
 	if(ret  == 0)
-	{	printf("超时时间:%s\n",cardPack.disabledate);
+	{
 		disabledateTime = getUtilsOps()->getTimeTick(cardPack.disabledate);
 		courentTime = getUtilsOps()->getTimestamp(NULL);
 		if(disabledateTime > courentTime)
@@ -91,13 +88,12 @@ static int doorCardRecvFunc(CARD_TYPE type ,unsigned char* cardId,unsigned int c
 			//播放(门已开语音)
 			playOpenTheDoor();
 			getUtilsOps()->setDoorSwitch(1);
-			timerTask(OPEN_DOOR_TIME,closeDoor,NULL);
+			timerTask(15000,closeDoor,NULL);
 
 			YjServer->upOpendoorRecord(YjServer,cardPack.cardid,cardPack.rid,cardPack.type,cardPack.state);
 			
 		}else{
 			playCardpastdue();
-			printf("card:%s disabledateTime: %llu  courentTime: %llu \n",cardPack.cardid,disabledateTime,courentTime);
 			printf("卡过期\n");
 			//播放(卡过期语音)
 		}
@@ -131,39 +127,31 @@ static int getCardIdFromYj(void)
 	int pagesize = 400;
 	int getsize = 0;
 	int totalPage = 0;
+	int remainPage = 1;
 	pCardInfo cardPack = malloc(sizeof(CardInfo) * pagesize);
 	if(cardPack == NULL)
 	{
 		return -1;
 	}	
 	int totalsize = 0;
-    while(1)
-    {		
+    while(remainPage >0)
+    {	
+    		remainPage --;
 			memset(cardPack,0,(sizeof(CardInfo) * pagesize));
-			
 			totalPage = YjServer->getICcard(YjServer,pageno,cardPack,pagesize, &getsize);
-			if(totalPage <= 0){
-				break;
-			}
 			totalsize += getsize;
-			printf("totalPage = %d pageno = %d getsize =%d\n",totalPage,pageno,getsize);
 			if(getsize > 0)
 			{
+				remainPage = totalPage - 1; 
 				if(pageno == 1)
 				{	
-					newcardDateBaseServer->rebuild(newcardDateBaseServer);  //首次获取把之前的数据清空
+					cardDateBaseServer->rebuild(cardDateBaseServer);  //首次获取把之前的数据清空
 				}
-				newcardDateBaseServer->addData(newcardDateBaseServer,cardPack,getsize);
+				cardDateBaseServer->addData(cardDateBaseServer,cardPack,getsize);
 			}
-
-			
 			pageno ++;
-			if( pageno > totalPage)
-				break;
-				
     }
-	newcardDateBaseServer->copyDataBase(newcardDateBaseServer,cardDateBaseServer);
-	printf("卡总数 = %d\n",totalsize);
+	printf("totalsize = %d\n",totalsize);
 	free(cardPack);
 	return 0;
 
@@ -176,7 +164,7 @@ static void * wtdThreadFunc(void* arg)
 
 	for(;;)
 	{
-		keepWTDalive(SET_WTD_TIME);
+		keepWTDalive(5);
 		sleep(1);
 	}
 	closeWTD();
@@ -190,7 +178,7 @@ static void gpioCallBackFuntion(int code, int value,int state)
 		case KEY_A:
 			printf("内部开门按钮触发\n");
 			getUtilsOps()->setDoorSwitch(1);	
-			timerTask(OPEN_DOOR_TIME,closeDoor,NULL);
+			timerTask(5000,closeDoor,NULL);
 		break;
 		default:
 			break;
@@ -214,8 +202,7 @@ int main(void)
 		LOGE("fail to crateFM1702NLOpsServer");
 		goto fail1;
 	}
-	cardDateBaseServer = createCardDataBaseServer(DATABASE_PATH);
-	newcardDateBaseServer = createCardDataBaseServer(NEW_DATABASE_PATH);
+	cardDateBaseServer = createCardDataBaseServer();
 	
 	wtdThread = pthread_register(wtdThreadFunc,NULL,0,NULL);
 	wtdThread->start(wtdThread);
@@ -230,8 +217,9 @@ int main(void)
 	{
 		
 		if(YjloginFlag != 0 ){
-	
-			if( (timerCount %RESET_LOGIN_TIME == 0 ) || (timerCount < 10) ) {
+
+			
+			if( (timerCount %RESET_LOGIN_TIME == 0 ) || (timerCount < 5) ) {
 				LOGD("正在登陆\n");
 				YjloginFlag = YjServer->login(YjServer);
 				if(YjloginFlag == 0)

@@ -191,12 +191,12 @@ static 	int getICcard(struct YJbackgroundOps* ops,int pageno,pCardInfo cardPack,
 	if(totalPage <= 0)
 		return 0;
 
-//	printf("jsonStr:%s",jsonStr);
+
 	//获取数组头
 	cJSON *jsonroot = cJSON_Parse(jsonStr); 
 	cJSON *child = cJSON_GetObjectItem(jsonroot,"data");
 	cJSON *listArray = cJSON_GetObjectItem(child,"LIST");
-	
+
 	int arrySize=cJSON_GetArraySize(listArray);
 
 	printf("arrySize = %d\n",arrySize);

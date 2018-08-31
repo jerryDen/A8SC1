@@ -9,12 +9,12 @@
 #include "common/debugLog.h"
 
 
+#define DB_PATCH    "/usr/work/.carddb"
 typedef struct  CardDataBaseServer{
 	
 	CardDataBaseOps ops;
 	sqlite3 *db;
 	pthread_mutex_t _mutex;
-	char path[128];
 
 }CardDataBaseServer,*pCardDataBaseServer;
 
@@ -22,8 +22,6 @@ typedef struct  CardDataBaseServer{
 static int rebuild(struct CardDataBaseOps * ops);
 static int addData(struct CardDataBaseOps* ops,pCardInfo cardArray,int cardNum);
 static int findCaidId(struct CardDataBaseOps* ops,char cardid[16],pCardInfo cardPack);
-static int copyDataBase(const struct CardDataBaseOps* sDataBase,struct CardDataBaseOps* dDataBase);
-
 
 static int  caeateCardDataTable(sqlite3 *db);
 
@@ -31,8 +29,7 @@ static CardDataBaseOps ops = {
 
 		.rebuild = rebuild,
 		.addData = addData,
-		.findCaidId = findCaidId,
-		.copyDataBase = copyDataBase
+		.findCaidId = findCaidId
 };
 
 static int tableHasBeenCreated(sqlite3 *db,char *tableName)
@@ -50,8 +47,6 @@ static int tableHasBeenCreated(sqlite3 *db,char *tableName)
 
 	
 }
-
-
 static int rebuild(struct CardDataBaseOps * ops)
 {
 	int ret;
@@ -60,12 +55,12 @@ static int rebuild(struct CardDataBaseOps * ops)
 	{
 		return -1;
 	}
-	if((access(server->path,F_OK)) != -1) { 
-		remove(server->path);
+	if((access(DB_PATCH,F_OK)) != -1) { 
+		remove(DB_PATCH);
 		sqlite3_close(server->db);
 		server->db = NULL;
 	} 
-	ret = sqlite3_open(server->path,&server->db);
+	ret = sqlite3_open(DB_PATCH,&server->db);
 	if( ret != SQLITE_OK )
 	{
 		LOGE("Can't open database: %s\n", sqlite3_errmsg(server->db));//sqlite3_errmsg(db)用以获得数据库打开错误码的英文描述。
@@ -80,8 +75,6 @@ static int rebuild(struct CardDataBaseOps * ops)
 	}
 	return 0;
 }
-
-
 static int addData(struct CardDataBaseOps* ops,pCardInfo cardArray,int cardNum)
 {
 	char sql[1024] = {0};
@@ -98,7 +91,7 @@ static int addData(struct CardDataBaseOps* ops,pCardInfo cardArray,int cardNum)
 		sprintf(sql,"INSERT INTO 'CardData' VALUES(%d,'%s',%d,'%s',%d,%d,'%s',%d,'%s');",\
 				cardArray->rid,cardArray->disabledate,cardArray->untitd,cardArray->state, \
 				cardArray->cellid,cardArray->blockid,cardArray->type,cardArray->districtid,cardArray->cardid);
-	//	LOGD("sql : %s  \ndb = %p\n",sql,server->db);
+		LOGD("sql : %s  \ndb = %p\n",sql,server->db);
 		ret = sqlite3_exec(server->db,sql,NULL,NULL,NULL);
 		if(ret != SQLITE_OK){
 
@@ -157,38 +150,7 @@ static int  caeateCardDataTable(sqlite3 *db)
 	//	 LOGD("%s\n",sql);
 		 return sqlite3_exec(db,sql,NULL,NULL,NULL);
 }
-static int copyDataBase(const struct CardDataBaseOps* sDataBase,struct CardDataBaseOps* dDataBase)
-{
-
-		pCardDataBaseServer sServer = (pCardDataBaseServer)sDataBase;
-		pCardDataBaseServer dServer = (pCardDataBaseServer)dDataBase;
-		char systemCmd[128] = {0};
-		int ret;
-		if(sServer == NULL||dServer == NULL)
-		{
-			return -1;
-		}
-
-		
-		if((access(dServer->path,F_OK)) != -1) { 
-			remove(dServer->path);
-			sqlite3_close(dServer->db);
-		
-		} 
-		sprintf(systemCmd,"cp -rf %s %s",sServer->path,dServer->path);
-		system(systemCmd);
-		ret = sqlite3_open(dServer->path,&dServer->db);
-		if( ret != SQLITE_OK )
-		{
-			LOGE("Can't open database: %s\n", sqlite3_errmsg(dServer->db));//sqlite3_errmsg(db)用以获得数据库打开错误码的英文描述。
-			sqlite3_close(dServer->db);
-			return -1;
-	    }
-		return 0;
-	
-}
-
-pCardDataBaseOps createCardDataBaseServer(const char *path)
+pCardDataBaseOps createCardDataBaseServer(void)
 {
 		 int ret;
 		 pCardDataBaseServer server = (pCardDataBaseServer)malloc(sizeof(CardDataBaseServer));
@@ -198,7 +160,7 @@ pCardDataBaseOps createCardDataBaseServer(const char *path)
 		 }
 		 memset(server,0,sizeof(CardDataBaseServer));
 
-		 ret = sqlite3_open(path,&server->db);
+		 ret = sqlite3_open(DB_PATCH,&server->db);
 		 if( ret != SQLITE_OK )
 		 {
 			LOGE("Can't open database: %s\n", sqlite3_errmsg(server->db));//sqlite3_errmsg(db)用以获得数据库打开错误码的英文描述。
@@ -218,7 +180,6 @@ pCardDataBaseOps createCardDataBaseServer(const char *path)
 				 }
 		 }
 		 server->ops = ops;
-		 strcpy(server->path,path);
 		 return server;
 fail2:
 	sqlite3_close(server->db);

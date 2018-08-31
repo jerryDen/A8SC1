@@ -24,13 +24,12 @@ typedef struct CardDataBaseOps{
 	void (*rebuild)(struct CardDataBaseOps * ops);
 	int (*addData)(struct CardDataBaseOps* ops,pCardInfo cardArray,int cardNum);
 	int (*findCaidId)(struct CardDataBaseOps* ops,char cardid[16],pCardInfo cardPack);
-	int (*copyDataBase)(const struct CardDataBaseOps* sDataBase,struct CardDataBaseOps* dDataBase);
 	
 
 }CardDataBaseOps,*pCardDataBaseOps;
 
 
-pCardDataBaseOps createCardDataBaseServer(const char *path);
+pCardDataBaseOps createCardDataBaseServer(void);
 
 void destroyCardDataBaseServer(pCardDataBaseOps * ops);
 

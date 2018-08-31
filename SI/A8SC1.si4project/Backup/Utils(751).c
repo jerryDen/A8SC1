@@ -695,7 +695,7 @@ static unsigned long long  getTimeTick(const char *str_time)
 		stm.tm_min=iMin;
 		stm.tm_sec=iS;
 		/*printf("%d-%0d-%0d %0d:%0d:%0d\n", iY, iM, iD, iH, iMin, iS);*/
-		return (unsigned long long )mktime(&stm)*1000;
+		return (unsigned long long )mktime(&stm);
 }
 
 

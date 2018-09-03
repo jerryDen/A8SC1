@@ -18,7 +18,7 @@
 #define RESET_LOGIN_TIME 300
 #define GET_CARDID_TIME  600
 #define GET_UPDATE_TIME  1200
-#define OPEN_DOOR_TIME   5000
+#define OPEN_DOOR_TIME   500
 #define SET_WTD_TIME     10
 static pYJbackgroundOps YjServer;
 static pUpdateServerOps updateServer;

@@ -18,7 +18,7 @@ typedef struct YJbackgroundOps{
 	int (*getICcard)(struct YJbackgroundOps* ops,int pageno,pCardInfo cardPack,int pagesize,int *getsize);
 	int (*upOpendoorRecord)(struct YJbackgroundOps*ops,char *idStr,int id ,char * cardType,char *status);
 	int (*getUpdateRecord)(struct YJbackgroundOps*ops,int *verId,char *downUrl,int urlLen,char *md5,int md5Len);
-	int (*upHeartbeatPack)(struct YJbackgroundOps*ops);
+
 
 }YJbackgroundOps,*pYJbackgroundOps;
 

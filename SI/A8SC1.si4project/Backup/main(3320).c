@@ -15,12 +15,11 @@
 #define DATABASE_PATH  "/usr/work/.cardDB"
 #define NEW_DATABASE_PATH "/usr/work/.newcardDB"
 
-#define RESET_LOGIN_TIME 	300
-#define GET_CARDID_TIME  	600
-#define GET_UPDATE_TIME  	1200
-#define OPEN_DOOR_TIME   	5000
-#define UP_HEARTBEAT_TIME   595
-#define SET_WTD_TIME     	10
+#define RESET_LOGIN_TIME 300
+#define GET_CARDID_TIME  600
+#define GET_UPDATE_TIME  1200
+#define OPEN_DOOR_TIME   5000
+#define SET_WTD_TIME     10
 static pYJbackgroundOps YjServer;
 static pUpdateServerOps updateServer;
 static pIcDoorCardOps 	icDoorCardReadServer;
@@ -93,19 +92,17 @@ static int doorCardRecvFunc(CARD_TYPE type ,unsigned char* cardId,unsigned int c
 			playOpenTheDoor();
 			getUtilsOps()->setDoorSwitch(1);
 			timerTask(OPEN_DOOR_TIME,closeDoor,NULL);
-			//上传IC卡开门记录
-			YjServer->upOpendoorRecord(YjServer,cardPack.cardid,cardPack.rid,"S","T");
+
+			YjServer->upOpendoorRecord(YjServer,cardPack.cardid,cardPack.rid,cardPack.type,cardPack.state);
 			
 		}else{
 			playCardpastdue();
 			printf("card:%s disabledateTime: %llu  courentTime: %llu \n",cardPack.cardid,disabledateTime,courentTime);
 			printf("卡过期\n");
-			YjServer->upOpendoorRecord(YjServer,cardPack.cardid,cardPack.rid,"S","F");
 			//播放(卡过期语音)
 		}
 			
 	}else{
-		//YjServer->upOpendoorRecord(YjServer,cardStr,0,"S","F");
 		printf("卡未登记!\n");
 		playCardUnregistered();
 		//播放(卡未登记语音)
@@ -241,7 +238,6 @@ int main(void)
 				{
 					LOGD("登录成功！\n");
 					timerCount = 0;
-					
 				}
 			}
 		}
@@ -259,10 +255,6 @@ int main(void)
 				LOGD("检测升级!\n");
 				updateCheck();
 				
-			}
-			if(timerCount % UP_HEARTBEAT_TIME == 0){
-				LOGD("upHeartbeatPack!");
-				YjServer->upHeartbeatPack(YjServer);
 			}
 		}
 		

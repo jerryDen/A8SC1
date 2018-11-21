@@ -19,7 +19,7 @@
 #define GET_CARDID_TIME  	600
 #define GET_UPDATE_TIME  	1200
 #define OPEN_DOOR_TIME   	5000
-#define UP_HEARTBEAT_TIME   595
+#define UP_HEARTBEAT_TIME   600
 #define SET_WTD_TIME     	10
 static pYJbackgroundOps YjServer;
 static pUpdateServerOps updateServer;
@@ -100,12 +100,11 @@ static int doorCardRecvFunc(CARD_TYPE type ,unsigned char* cardId,unsigned int c
 			playCardpastdue();
 			printf("card:%s disabledateTime: %llu  courentTime: %llu \n",cardPack.cardid,disabledateTime,courentTime);
 			printf("卡过期\n");
-			YjServer->upOpendoorRecord(YjServer,cardPack.cardid,cardPack.rid,"S","F");
+			YjServer->upOpendoorRecord(YjServer,cardPack.cardid,cardPack.rid,"S","S");
 			//播放(卡过期语音)
 		}
 			
 	}else{
-		//YjServer->upOpendoorRecord(YjServer,cardStr,0,"S","F");
 		printf("卡未登记!\n");
 		playCardUnregistered();
 		//播放(卡未登记语音)

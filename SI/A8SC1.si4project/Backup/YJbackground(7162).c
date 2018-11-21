@@ -25,9 +25,9 @@ static 	int getICcard(struct YJbackgroundOps* ops,int pageno,pCardInfo cardPack,
 
 
 static	int upOpendoorRecord(struct YJbackgroundOps*ops,char *idStr,int id ,char * cardType,char *status);
+
 static	int getUpdateRecord(struct YJbackgroundOps*ops,int *verId,char *downUrl,int urlLen,char *md5,int md5Len);
 static  int getDeviceInfo(struct YJbackgroundOps* ops,pDeviceInfo deviceInfo);
-static 	int upHeartbeatPack(struct YJbackgroundOps*ops);
 
 static void getfkey(const char *value,const char *timestamp,char *fkey);
 
@@ -38,7 +38,6 @@ YJbackgroundOps ops = {
 	.upOpendoorRecord = upOpendoorRecord,
 	.getUpdateRecord = getUpdateRecord,
 	.getDeviceInfo = getDeviceInfo,
-	.upHeartbeatPack = upHeartbeatPack,
 };
 
 
@@ -283,48 +282,6 @@ static 	int getICcard(struct YJbackgroundOps* ops,int pageno,pCardInfo cardPack,
 	return totalPage;
 
 }
-static 	int upHeartbeatPack(struct YJbackgroundOps*ops){
-
-	pYJbackgroundServer server =  (pYJbackgroundServer)ops;
-	if(server == NULL)
-		return -1;
-	char *url = "http://api.yunjiangkj.com/appVilla/connect?";
-	
-	unsigned long long   timestampLong;
-	char  timestampStr[24] = {0};
-	char  getparameter[256] = {0};
-	char  lockid[24] = {0};
-	char  fkey[48] = {0};
-	char  macaddres[36] = {0};
-	char  jsonStr[256]= {0};
-	char  httpCode[12] = {0};
-	int   ret;
-	sprintf(lockid,"%u",server->device.lockid);
-	timestampLong = getUtilsOps()->getTimestamp(timestampStr);
-	getfkey(lockid,timestampStr,fkey);
-	getUtilsOps()->getMacAddress(macaddres);
-	sprintf(getparameter,"%sFKEY=%s&TIMESTAMP=%s&LOCKMAC=%s&LOCKID=%s",url,fkey,timestampStr,macaddres,lockid);
-	printf("getparameter:%s\n",getparameter);
-	ret = server->httpClient->getUrl(getparameter,jsonStr,sizeof(jsonStr)-1);
-	if(ret < 0)
-	{
-		return -1;
-	}
-	ret  = getUtilsOps()->getStrFormCjson(jsonStr,"code",httpCode,sizeof(httpCode));
-	if(ret < 0)
-	{
-			return -1;
-	}
-	ret  = strcmp("101",httpCode);
-	if(ret != 0 )
-	{
-			return 0;
-	}
-	
-	return -1;
-
-}
-
 static	int upOpendoorRecord(struct YJbackgroundOps*ops,char *idStr,int id ,char * cardType,char *status)
 {
 	pYJbackgroundServer server =  (pYJbackgroundServer)ops;

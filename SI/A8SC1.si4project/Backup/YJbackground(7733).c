@@ -274,15 +274,12 @@ static 	int getICcard(struct YJbackgroundOps* ops,int pageno,pCardInfo cardPack,
 			 int cpl = strLen>spaceLen?spaceLen:strLen;
 			 strncpy(cardPack->cardid,child->valuestring,cpl);
 		}
-		
-		
+	
 		listhead = listhead->next;
 		cardPack += 1;
 		pagesize --;
 
 	}
-	cJSON_Delete(jsonroot);
-	
 	return totalPage;
 
 }
@@ -376,7 +373,7 @@ static	int upOpendoorRecord(struct YJbackgroundOps*ops,char *idStr,int id ,char 
 	
 	printf("json:%s\n",jsonStr);
 	
-	cJSON_Delete(pRoot);
+
 //	curl -l -H "Content-type: application/json" -X POST -d '{"phone":"13521389587","password":"test"}' http://api.yunjiangkj.com/appVilla/uploadAccess
 
 

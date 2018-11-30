@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include "common/debugLog.h"
 #include "YJbackground.h"
-#include "updateServer.h"
+#include "updateServer.h"恩
 #include "fm1702nl.h"
 #include "cardDatabase.h"
 #include "common/Utils.h"
@@ -11,16 +11,16 @@
 #include "sample_comm.h"
 #include "common/inputEvent.h"
 
+
 #define DATABASE_PATH  "/usr/work/.cardDB"
 #define NEW_DATABASE_PATH "/usr/work/.newcardDB"
 
 #define RESET_LOGIN_TIME 	300
-#define GET_CARDID_TIME     600
+#define GET_CARDID_TIME  	600
 #define GET_UPDATE_TIME  	1200
 #define OPEN_DOOR_TIME   	5000
 #define UP_HEARTBEAT_TIME   595
 #define SET_WTD_TIME     	10
-#define CHECK_TIME          10
 static pYJbackgroundOps YjServer;
 static pUpdateServerOps updateServer;
 static pIcDoorCardOps 	icDoorCardReadServer;
@@ -60,6 +60,8 @@ static int doorCardRecvFunc(CARD_TYPE type ,unsigned char* cardId,unsigned int c
 	unsigned long long courentTime = 0;
 	char cardStr[12] = {0};
 
+
+	
 
 	//防止重复刷卡	
 	struct timespec  current_time;
@@ -138,15 +140,13 @@ static int getCardIdFromYj(void)
 		return -1;
 	}	
 	int totalsize = 0;
-    for(;;)
+    while(1)
     {		
 			memset(cardPack,0,(sizeof(CardInfo) * pagesize));
 			
 			totalPage = YjServer->getICcard(YjServer,pageno,cardPack,pagesize, &getsize);
-			if(totalPage == 0){
+			if(totalPage <= 0){
 				break;
-			}else if( totalPage < 0 ){
-				goto exit;
 			}
 			totalsize += getsize;
 			printf("totalPage = %d pageno = %d getsize =%d\n",totalPage,pageno,getsize);
@@ -154,21 +154,19 @@ static int getCardIdFromYj(void)
 			{
 				if(pageno == 1)
 				{	
-					//1.重置数据库(清空)
 					newcardDateBaseServer->rebuild(newcardDateBaseServer);  //首次获取把之前的数据清空
 				}
-				//2.把数据加入到数据库内
 				newcardDateBaseServer->addData(newcardDateBaseServer,cardPack,getsize);
 			}
+
+			
 			pageno ++;
 			if( pageno > totalPage)
 				break;
 				
     }
-	//把新的数据库拷贝到在用的数据库中 cp -rf newcardDB                    cardBD 
 	newcardDateBaseServer->copyDataBase(newcardDateBaseServer,cardDateBaseServer);
-	printf("卡总数 = %d!!!\n",totalsize);
-exit:
+	printf("卡总数 = %d\n",totalsize);
 	free(cardPack);
 	return 0;
 
@@ -267,18 +265,9 @@ int main(void)
 				YjServer->upHeartbeatPack(YjServer);
 			}
 		}
-		if(timerCount%CHECK_TIME == 0){
-
-			    time_t timep;   
-   				struct tm p;   
-    			time(&timep);   
-    			if (localtime_r(&timep,&p) != NULL){   
-					if(p.tm_hour == 20 && p.tm_min==0 &&p.tm_sec <30){
-						system("reboot");
-					}
-    			}
-		}
+		
 		timerCount ++;
+		
 		sleep(1);
 		
 	}

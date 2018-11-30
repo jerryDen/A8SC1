@@ -266,7 +266,7 @@ static  int readHttpBufnew( pHttpClientServer server,void * data,int len,int tim
 static int  test(void)
 {
 
-	   CURL *curl;
+	  CURL *curl;
 	   CURLcode res;
 	 
 	   curl_global_init(CURL_GLOBAL_DEFAULT);

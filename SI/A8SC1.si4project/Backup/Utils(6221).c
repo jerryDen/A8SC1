@@ -508,27 +508,22 @@ static int getStrFormCjson(const char *cjsonStr,const char *keyStr,char *buf,int
 	 if(jsonroot == NULL)
 	 	return -1; 
     jsonfind  = cJSON_GetObjectItem(jsonroot, keyStr); 
-	if(jsonfind == NULL){
-		goto error;
-	}
+	if(jsonfind == NULL)
+		return -1;
 	valuestrLen = strlen(jsonfind->valuestring);
 	if( valuestrLen< len)
 	{
 		memcpy(buf,jsonfind->valuestring,valuestrLen);
 		buf[valuestrLen] = 0;
-		cJSON_Delete(jsonroot);
 		return valuestrLen+1;
 	}else {
 
 		memcpy(buf,jsonfind->valuestring,len-1);
 		buf[len] = 0;
-		cJSON_Delete(jsonroot);
 		return len;
 	}
-	error:
-		cJSON_Delete(jsonroot);
-		return -1;
 
+	return -1;
 }
 static int  getIntFormCjson(const char *cjsonStr,const char *keyStr,int *value)
 {
@@ -539,12 +534,11 @@ static int  getIntFormCjson(const char *cjsonStr,const char *keyStr,int *value)
 	 	return -1; 
      jsonfind  = cJSON_GetObjectItem(jsonroot, keyStr);
 	 if(jsonfind == NULL ){
-	 	cJSON_Delete(jsonroot);
 	 	return -1; 
 	 }
 	 *value = jsonfind->valueint;
-	cJSON_Delete(jsonroot);
-	return 0;
+
+	 return 0;
 }
 static int getChildDoubleFormCjson(const char *cjsonStr,const char *childStr,const char *keyStr,double *value)
 {
@@ -554,21 +548,16 @@ static int getChildDoubleFormCjson(const char *cjsonStr,const char *childStr,con
 	if(jsonroot == NULL)
 	 	return -1; 
 	child  = cJSON_GetObjectItem(jsonroot, childStr); 
-	if(child == NULL){
-		goto error;
-	}
+	if(child == NULL)
+		return -1;
 	
 	find = cJSON_GetObjectItem(child,keyStr);
 	if(find == NULL)
 	{
-		goto error;
+		return -1;
 	}
 	*value = find->valuedouble;
-	cJSON_Delete(jsonroot);
 	return 0;
-error:
-	cJSON_Delete(jsonroot);
-	return -1;
 }
 static int getChildIntFormCjson(const char *cjsonStr,const char *childStr,const char *keyStr,int *value)
 {
@@ -578,21 +567,15 @@ static int getChildIntFormCjson(const char *cjsonStr,const char *childStr,const 
 	if(jsonroot == NULL)
 	 	return -1; 
 	child  = cJSON_GetObjectItem(jsonroot, childStr); 
-	if(child == NULL){
-		goto error;
-	}
+	if(child == NULL)
+		return -1;
 	find = cJSON_GetObjectItem(child,keyStr);
 	if(find == NULL)
 	{
-		
-		goto error;
+		return -1;
 	}
-	cJSON_Delete(jsonroot);
 	*value = find->valueint;
 	return 0;
-error:
-	cJSON_Delete(jsonroot);
-	return -1;
 }
 static int getChildStrFormCjson(const char *cjsonStr,const char *childStr,const char *keyStr,char *buf,int len)
 {
@@ -603,31 +586,25 @@ static int getChildStrFormCjson(const char *cjsonStr,const char *childStr,const 
 	if(jsonroot == NULL)
 	 	return -1; 
 	child  = cJSON_GetObjectItem(jsonroot, childStr); 
-	if(child == NULL){
-		goto error;
-	}
+	if(child == NULL)
+		return -1;
 	find = cJSON_GetObjectItem(child,keyStr);
 	if(find == NULL)
 	{
-		goto error;
+		return -1;
 	}
 	valuestrLen = strlen(find->valuestring);
 	if( valuestrLen< len)
 	{
 		memcpy(buf,find->valuestring,valuestrLen);
 		buf[valuestrLen] = 0;
-		cJSON_Delete(jsonroot);
 		return valuestrLen+1;
 	}else {
 
 		memcpy(buf,find->valuestring,len-1);
 		buf[len] = 0;
-		cJSON_Delete(jsonroot);
 		return len;
 	}
-
-error:
-	cJSON_Delete(jsonroot);
 	return -1;
 }
 
@@ -639,12 +616,9 @@ static int  getDoubleFormCjson(const char *cjsonStr,const char *keyStr ,double *
 	 if(jsonroot == NULL)
 	 	return -1; 
     jsonfind = cJSON_GetObjectItem(jsonroot, keyStr); 
-	 if(jsonfind == NULL){
+	 if(jsonfind == NULL)
 	 	return -1;
-		cJSON_Delete(jsonroot);
-	 }
 	 *value = jsonfind->valuedouble;
-	 cJSON_Delete(jsonroot);
 	 return 0;
 }
 static int getMacAddress(char *addrBuf)
